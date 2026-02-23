@@ -1,4 +1,74 @@
-/* ===== ORBIT DOTS LOADER ===== */
+/* ===== WEBKIT / iOS SAFARI STABILITY FIXES FOR ALL VIDEO SECTIONS ===== */
+
+/* Force GPU compositing for smoother rendering */
+.scroll-video,
+.sticky-wrap,
+.scroll-video canvas,
+.scroll-video video,
+.video-dim,
+.overlay-content {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+
+  -webkit-perspective: 1000;
+  perspective: 1000;
+}
+
+/* Make sure canvas & video always fill screen correctly on iOS */
+.scroll-video canvas,
+.scroll-video video {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+
+  will-change: transform, opacity;
+}
+
+/* Prevent white/black flash when switching layers */
+.sticky-wrap {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Smooth layer stacking for overlays */
+.video-dim,
+.film-grain,
+.overlay-content {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: opacity, transform;
+}
+
+/* iOS Safari sometimes ignores position: sticky without this */
+@supports (-webkit-touch-callout: none) {
+  .sticky-wrap {
+    position: -webkit-sticky;
+    position: sticky;
+  }
+}
+
+/* Improve video rendering on iOS */
+.scroll-video video {
+  -webkit-object-fit: cover;
+  object-fit: cover;
+}
+
+/* Prevent flicker during loader → first frame switch */
+#site-loader {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: opacity;
+}/* ===== PREMIUM ORBIT DOT LOADER ===== */
 #site-loader {
   position: fixed;
   inset: 0;
@@ -14,7 +84,8 @@
   justify-content: center;
   z-index: 99999;
   -webkit-transition: opacity 1.2s ease, visibility 1.2s ease;
-  transition: opacity 1.2s ease, visibility 1.2s ease;
+
+  transition: opacity 0.4s ease, visibility 0.4s ease;  /* 👈 faster fade */
 }
 
 #site-loader.hide {
@@ -24,35 +95,54 @@
 
 .orbit-wrap {
   position: relative;
-  width: 220px;
-  height: 220px;
+  width: 260px;
+  height: 260px;
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
 }
 
-/* Rotating dots */
+/* Rotating orbit */
 .orbit {
   position: absolute;
   inset: 0;
-  -webkit-animation: spin 2.2s linear infinite;
-  animation: spin 2.2s linear infinite;
+  -webkit-animation: spin 2.4s linear infinite;
+  animation: spin 2.4s linear infinite;
 }
 
+/* Dots */
 .orbit span {
   position: absolute;
-  width: 10px;
-  height: 10px;
+  width: 16px;        /* 👈 bigger but not too big */
+  height: 16px;
   border-radius: 50%;
   background: #e6d6b8;
-  box-shadow: 0 0 12px rgba(230,214,184,0.6);
+  box-shadow: 0 0 18px rgba(230,214,184,0.6);
 }
 
-/* Place 3 dots around a circle */
-.orbit span:nth-child(1) { top: 0; left: 50%; transform: translateX(-50%); }
-.orbit span:nth-child(2) { right: 0; top: 50%; transform: translateY(-50%); }
-.orbit span:nth-child(3) { bottom: 0; left: 50%; transform: translateX(-50%); }
+/* Place dots around circle */
+.orbit span:nth-child(1) {
+  top: 0;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+}
 
-/* Center text */
+.orbit span:nth-child(2) {
+  right: 0;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+.orbit span:nth-child(3) {
+  bottom: 0;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+}
+
+/* Center brand text */
+/* Center brand text (BIGGER & PREMIUM) */
 .orbit-text {
   position: absolute;
   inset: 0;
@@ -70,16 +160,16 @@
   color: #e6d6b8;
   font-weight: 300;
   letter-spacing: 0.35em;
-  -webkit-animation: textPulse 2.2s ease-in-out infinite;
-  animation: textPulse 2.2s ease-in-out infinite;
+  font-size: clamp(18px, 3vw, 28px);  /* 👈 MAIN SIZE */
+  -webkit-animation: textPulse 2.4s ease-in-out infinite;
+  animation: textPulse 2.4s ease-in-out infinite;
 }
 
 .orbit-text span {
-  font-size: 12px;
+  font-size: clamp(12px, 2vw, 18px);   /* 👈 STREET size */
   letter-spacing: 0.5em;
-  opacity: 0.8;
+  opacity: 0.85;
 }
-
 /* Animations */
 @-webkit-keyframes spin {
   to { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
