@@ -1,0 +1,897 @@
+/* ===== CINEMATIC LUXURY LOADER ===== */
+#site-loader {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #0a0a0a 0%, #000 60%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  transition: opacity 1.5s ease, visibility 1.5s ease;
+}
+
+#site-loader.hide {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loader-inner {
+  position: relative;
+  overflow: hidden;
+}
+
+.lux-title {
+  font-size: clamp(36px, 6vw, 90px);
+  letter-spacing: 0.35em;
+  font-weight: 300;
+  color: #e6d6b8;
+  display: flex;
+  gap: 0.15em;
+}
+
+/* Each letter */
+.lux-title span {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  filter: blur(6px);
+  animation: letterIn 1s cubic-bezier(0.19,1,0.22,1) forwards;
+}
+
+/* Light sweep */
+.lux-sweep {
+  position: absolute;
+  top: 0;
+  left: -30%;
+  width: 30%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255,255,255,0.15) 50%,
+    transparent 100%
+  );
+  animation: sweep 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Animations */
+@keyframes letterIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+    text-shadow: 0 10px 40px rgba(230,214,184,0.35);
+  }
+}
+
+@keyframes sweep {
+  0%   { left: -40%; }
+  60%  { left: 110%; }
+  100% { left: 110%; }
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: #000;
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  width: min(1100px, 90%);
+  margin: auto;
+}
+
+/* =========================
+   INTRO AUTOPLAY SECTION
+========================= */
+.intro-video {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.intro-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.intro-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+  text-align: center;
+  padding: 20px;
+}
+
+.intro-title {
+  font-size: clamp(2rem, 5vw, 4rem);
+  letter-spacing: 0.2em;
+}
+
+.intro-sub {
+  margin-top: 12px;
+  opacity: 0.8;
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  opacity: 0.7;
+  z-index: 3;
+}
+
+/* =========================
+   SCROLL VIDEO SECTIONS
+========================= */
+.scroll-video {
+  position: relative;
+  height: calc(100vh + 300vh);
+}
+
+.sticky-wrap {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.scroll-video canvas {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
+.video-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  z-index: 2;
+}
+
+.overlay-content {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  text-align: center;
+  padding: 20px;
+}
+
+.section-title {
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.scroll-spacer {
+  height: 300vh;
+}
+
+.scroll-video video {
+  display: none;
+}
+
+.sticky-wrap {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.scroll-video canvas {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
+.video-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  z-index: 2;
+}
+
+.overlay-content {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  text-align: center;
+  padding: 20px;
+}
+
+.section-title {
+  font-size: clamp(1.5rem, 4vw, 3rem);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.scroll-spacer {
+  height: 300vh;
+}
+
+.scroll-video video {
+  display: none;
+}
+
+
+/* This applies the fade directly to the overlay container */
+.overlay-content.right-aligned-panel {
+  position: absolute;
+  inset: 0; /* Shorthand for top, bottom, left, right: 0 */
+  display: flex;
+  justify-content: flex-end; /* Keeps text on the right */
+  align-items: center;
+  z-index: 10;
+  pointer-events: none; /* Allows clicks to pass through to video if needed */
+
+  /* THE GRADIENT: 
+     - Starts 0% transparent
+     - Stays transparent until 40% (the left side of the screen)
+     - Fades into dark black by 60% where the text starts
+  */
+  background: linear-gradient(
+    to right, 
+    rgba(0, 0, 0, 0) 0%, 
+    rgba(0, 0, 0, 0) 50%, 
+    rgba(0, 0, 0, 0.75) 80%, 
+    rgba(0, 0, 0, 0.85) 100%
+  );
+}
+.text-panel {
+  width: 40%;
+  padding-right: 0;          /* remove right bias */
+  color: #ffffff;
+  pointer-events: auto;
+
+  display: flex;             /* center content vertically */
+  flex-direction: column;
+  align-items: center;       /* horizontal centering */
+  justify-content: center;   /* vertical centering */
+  text-align: center;        /* center text */
+}
+
+.section-title {
+  font-size: 3.5rem;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  text-align: center;        /* ensure centered */
+}
+
+.section-description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 380px;
+  font-weight: 300;
+  opacity: 0.9;
+  text-align: center;        /* ensure centered */
+}
+
+
+.overlay-content {
+  position: absolute;
+  inset: 0;
+  z-index: 3;   /* ✅ text always on top */
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+.overlay-content.left-aligned-panel {
+  justify-content: flex-start;
+
+  background: linear-gradient(
+    to right,
+    rgba(0,0,0,0.85) 0%,
+    rgba(0,0,0,0.75) 40%,
+    rgba(0,0,0,0.0) 70%,
+    rgba(0,0,0,0.0) 100%
+  );
+}
+
+.left-aligned-panel .text-panel {
+  width: 40%;
+  padding-left: 8%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  pointer-events: auto;
+}
+
+.amenities-section {
+  background-color: #000;
+  padding: 80px 20px;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.subtitle {
+  color: #666;
+  letter-spacing: 4px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.main-title {
+  font-size: 3rem;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+.features-grid {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background-color: #1a1f2b; /* Dark Navy-Grey */
+  padding: 30px;
+  border-radius: 15px;
+  flex: 1;
+  min-width: 250px;
+  transition: transform 0.3s ease;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+}
+
+/* Icon Styles */
+.icon-box {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.blue   { background-color: #0066ff; }
+.green  { background-color: #00a86b; }
+.cyan   { background-color: #0099cc; }
+.orange { background-color: #ff5500; }
+
+.card-number {
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 10px 15px;
+  border-radius: 10px;
+  color: #555;
+  font-size: 0.8rem;
+}
+
+.feature-card h3 {
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+}
+
+.feature-card p {
+  color: #999;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .features-grid { flex-wrap: wrap; }
+  .feature-card { flex: 45%; }
+}
+
+.premium-footer {
+  background-color: #000;
+  position: relative;
+  padding: 120px 0 60px;
+  color: #fff;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  border-top: 1px solid #222;
+}
+
+/* The "Large" Background Text */
+.footer-bg-text {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 25vw; /* Extremely large */
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.03); /* Barely visible */
+  pointer-events: none;
+  letter-spacing: -1vw;
+}
+
+.footer-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Top Section */
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 80px;
+}
+
+.brand-title {
+  font-size: 2.5rem;
+  letter-spacing: 10px;
+  margin-bottom: 20px;
+}
+
+.brand-title span { font-weight: 200; opacity: 0.6; }
+
+.brand-text {
+  max-width: 400px;
+  color: #666;
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+.footer-links-wrapper {
+  display: flex;
+  gap: 100px;
+}
+
+.link-group h5 {
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  color: #444;
+  margin-bottom: 25px;
+}
+
+.link-group a, .link-group p {
+  display: block;
+  text-decoration: none;
+  color: #999;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  transition: color 0.3s;
+}
+
+.link-group a:hover { color: #fff; }
+
+/* Middle Section: Newsletter */
+.footer-mid {
+  border-top: 1px solid #111;
+  border-bottom: 1px solid #111;
+  padding: 60px 0;
+  margin-bottom: 40px;
+}
+
+.newsletter-box h4 {
+  font-size: 1.5rem;
+  margin-bottom: 25px;
+  font-weight: 300;
+}
+
+.input-wrap {
+  display: flex;
+  max-width: 500px;
+  border-bottom: 1px solid #333;
+}
+
+.input-wrap input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 15px 0;
+  flex: 1;
+  outline: none;
+  letter-spacing: 2px;
+}
+
+.input-wrap button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.input-wrap button:hover { transform: translateX(10px); }
+
+/* Bottom Section */
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: #333;
+}
+
+.social-links a {
+  color: #333;
+  text-decoration: none;
+  margin-left: 30px;
+  transition: color 0.3s;
+}
+
+.social-links a:hover { color: #fff; }
+
+@media (max-width: 992px) {
+  .footer-top { flex-direction: column; gap: 50px; }
+  .footer-links-wrapper { gap: 40px; }
+}
+
+.accent-line {
+  width: 60px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.8);
+  margin-bottom: 20px;
+}
+.meta-bar {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 14px;
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+}
+.film-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+}
+
+.side-label {
+  position: absolute;
+  left: 20px;              /* put it on LEFT so you can see it */
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  font-size: 0.9rem;
+  letter-spacing: 6px;
+  color: #ffffff;         /* force visible color */
+  opacity: 0.8;
+  z-index: 10;             /* above everything */
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+.overlay-content {
+  position: absolute;
+  inset: 0;
+  z-index: 5;   /* higher than film grain & dim */
+}
+/* Soft spotlight behind Center Complex text */
+.spotlight {
+  position: absolute;
+  width: 520px;     /* bigger */
+  height: 520px;
+  border-radius: 50%;
+  right: 10%;       /* keep near the text (change to left if needed) */
+  top: 50%;
+  transform: translateY(-50%);
+  background: radial-gradient(
+    circle,
+    rgba(255,255,255,0.28) 0%,
+    rgba(255,255,255,0.18) 25%,
+    rgba(255,255,255,0.08) 45%,
+    rgba(255,255,255,0.0) 70%
+  );
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Architectural frame for Vice Tower */
+.tower-frame {
+  position: absolute;
+  width: 46%;
+  height: 60%;
+  left: 6%;          /* because this section is left-aligned */
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Two-corner light accents (no box) */
+.corner-light {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  pointer-events: none;
+  z-index: 4;
+  filter: drop-shadow(0 0 12px rgba(255,255,255,0.6));
+}
+
+/* Top-left corner */
+.corner-light-tl {
+  left: 6%;                 /* align with your left text area */
+  top: 22%;
+  border-top: 2px solid rgba(255,255,255,0.9);
+  border-left: 2px solid rgba(255,255,255,0.9);
+}
+
+/* Bottom-right corner */
+.corner-light-br {
+  left: 46%;                /* end of your text area width (~40% + padding) */
+  top: 62%;
+  border-bottom: 2px solid rgba(255,255,255,0.9);
+  border-right: 2px solid rgba(255,255,255,0.9);
+}
+/* ===== 3D PARALLAX HERO ===== */
+.hero-3d-wrap {
+  perspective: 1000px;
+}
+
+.hero-3d {
+  position: relative;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  letter-spacing: 0.25em;
+  transform-style: preserve-3d;
+  transition: transform 0.2s ease-out;
+}
+
+/* Base layer styles */
+.hero-3d .layer {
+  position: absolute;
+  inset: 0;
+  text-align: center;
+  display: block;
+}
+
+/* Back layer = glow / depth */
+.hero-3d .layer-back {
+  color: rgba(255,255,255,0.35);
+  transform: translateZ(-60px);
+  filter: blur(6px);
+}
+
+/* Front layer = sharp text */
+.hero-3d .layer-front {
+  color: #ffffff;
+  transform: translateZ(0);
+}
+
+/* Centering fix */
+.hero-3d {
+  display: inline-block;
+}
+
+/* Optional: subtle text shadow for richness */
+.hero-3d .layer-front {
+  text-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+/* ===== Scroll In / Out Reveal Animation ===== */
+.reveal-toggle {
+  opacity: 0;
+  transform: translateY(40px);
+  filter: blur(8px);
+  transition: all 0.9s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.reveal-toggle.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* =========================
+   MOBILE ONLY FIXES
+   ========================= */
+@media (max-width: 768px) {
+
+  /* General spacing */
+  .overlay-content {
+    padding: 16px;
+  }
+
+  /* Make all text panels full width */
+  .text-panel,
+  .left-aligned-panel .text-panel {
+    width: 100% !important;
+    padding: 0 10% !important;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Remove heavy side gradients on mobile */
+  .overlay-content.right-aligned-panel,
+  .overlay-content.left-aligned-panel {
+    justify-content: center;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.65) 0%,
+      rgba(0,0,0,0.55) 50%,
+      rgba(0,0,0,0.65) 100%
+    );
+  }
+
+  /* Titles */
+  .section-title {
+    font-size: 1.8rem;
+    letter-spacing: 0.12em;
+  }
+
+  /* Descriptions */
+  .section-description {
+    font-size: 0.95rem;
+    max-width: 100%;
+  }
+
+  /* Meta bar */
+  .meta-bar {
+    bottom: 20px;
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+  }
+
+  /* Hide side label on mobile */
+  .side-label {
+    display: none;
+  }
+
+  /* Spotlight smaller */
+  .spotlight {
+    width: 280px;
+    height: 280px;
+    right: 50%;
+    transform: translate(50%, -50%);
+    opacity: 0.6;
+  }
+
+  /* Corner lights smaller */
+  .corner-light {
+    width: 32px;
+    height: 32px;
+  }
+
+  .corner-light-tl {
+    left: 8%;
+    top: 20%;
+  }
+
+  .corner-light-br {
+    left: auto;
+    right: 8%;
+    top: 70%;
+  }
+
+  /* Hero 3D text */
+  .hero-3d {
+    font-size: clamp(1.8rem, 8vw, 3rem);
+    letter-spacing: 0.18em;
+  }
+
+  .hero-3d .layer-back {
+    transform: translateZ(-30px);
+    filter: blur(4px);
+  }
+
+  /* Amenities section */
+  .features-grid {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .feature-card {
+    min-width: 100%;
+  }
+
+  .main-title {
+    font-size: 2rem;
+  }
+
+  /* Footer layout */
+  .footer-top {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .footer-links-wrapper {
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .social-links a {
+    margin: 0 10px;
+  }
+
+  /* Reduce huge background text in footer */
+  .footer-bg-text {
+    font-size: 40vw;
+  }
+}
+@media (max-width: 768px) {
+
+  /* Remove full-screen dark gradient */
+  .overlay-content.right-aligned-panel,
+  .overlay-content.left-aligned-panel {
+    background: none !important;
+    justify-content: center;
+  }
+
+  /* Make text panel act like a glass/black card */
+  .text-panel,
+  .left-aligned-panel .text-panel {
+    width: 92% !important;
+    padding: 24px 20px !important;
+    background: rgba(0, 0, 0, 0.65);   /* 🔥 black only behind text */
+    backdrop-filter: blur(6px);
+    border-radius: 14px;
+    text-align: center;
+    align-items: center;
+  }
+
+  /* Slightly smaller titles for mobile */
+  .section-title {
+    font-size: 1.7rem;
+  }
+
+  .section-description {
+    font-size: 0.95rem;
+  }
+
+  /* Keep meta bar readable */
+  .meta-bar {
+    bottom: 16px;
+    font-size: 0.6rem;
+  }
+
+  /* Hide side label on mobile */
+  .side-label {
+    display: none;
+  }
+}@media (max-width: 768px) {
+  .meta-bar {
+    display: none !important;
+  }
+}
