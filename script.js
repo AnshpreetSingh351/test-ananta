@@ -373,41 +373,25 @@ const toggleObserver = new IntersectionObserver((entries) => {
 }, {
   threshold: 0.4
 });
-  // Split title into letters
-  const title = document.getElementById("luxTitle");
-  const text = title.innerText;
-  title.innerHTML = "";
 
-  text.split("").forEach((char, i) => {
-    const span = document.createElement("span");
-    span.textContent = char === " " ? "\u00A0" : char;
-    span.style.animationDelay = `${i * 0.08}s`;
-    title.appendChild(span);
-  });
+toggleElements.forEach(el => toggleObserver.observe(el));
 
-  // ===== SMART LOADER (MIN TIME + READY) =====
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", function () {
     const loader = document.getElementById("site-loader");
-    const MIN_TIME = 4000; // minimum 4s
-    const start = performance.now();
+    const MIN_TIME = 3000; // minimum 3s
+    const start = Date.now();
 
-    let ready = false;
-
-    // Simple: wait for window load (you can keep your smart logic too)
-    window.addEventListener("load", () => {
-      ready = true;
-      tryHide();
-    });
-
-    function tryHide() {
-      const elapsed = performance.now() - start;
+    window.addEventListener("load", function () {
+      const elapsed = Date.now() - start;
       const wait = Math.max(0, MIN_TIME - elapsed);
 
-      setTimeout(() => {
+      setTimeout(function () {
         loader.classList.add("hide");
-      }, wait + 400);
-    }
+      }, wait + 300);
+    });
 
-    // Safety
-    setTimeout(() => loader.classList.add("hide"), 20000);
+    // Safety fallback
+    setTimeout(function () {
+      loader.classList.add("hide");
+    }, 20000);
   });

@@ -1,13 +1,20 @@
-/* ===== CINEMATIC LUXURY LOADER ===== */
+/* ===== ORBIT DOTS LOADER ===== */
 #site-loader {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at center, #0a0a0a 0%, #000 60%);
+  background: #000;
+  display: -webkit-box;
+  display: -webkit-flex;
   display: flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
   align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
   justify-content: center;
   z-index: 99999;
-  transition: opacity 1.5s ease, visibility 1.5s ease;
+  -webkit-transition: opacity 1.2s ease, visibility 1.2s ease;
+  transition: opacity 1.2s ease, visibility 1.2s ease;
 }
 
 #site-loader.hide {
@@ -15,59 +22,81 @@
   visibility: hidden;
 }
 
-.loader-inner {
+.orbit-wrap {
   position: relative;
-  overflow: hidden;
+  width: 220px;
+  height: 220px;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
-.lux-title {
-  font-size: clamp(36px, 6vw, 90px);
-  letter-spacing: 0.35em;
-  font-weight: 300;
-  color: #e6d6b8;
-  display: flex;
-  gap: 0.15em;
-}
-
-/* Each letter */
-.lux-title span {
-  opacity: 0;
-  transform: translateY(20px) scale(0.95);
-  filter: blur(6px);
-  animation: letterIn 1s cubic-bezier(0.19,1,0.22,1) forwards;
-}
-
-/* Light sweep */
-.lux-sweep {
+/* Rotating dots */
+.orbit {
   position: absolute;
-  top: 0;
-  left: -30%;
-  width: 30%;
-  height: 100%;
-  background: linear-gradient(
-    120deg,
-    transparent 0%,
-    rgba(255,255,255,0.15) 50%,
-    transparent 100%
-  );
-  animation: sweep 3.5s ease-in-out infinite;
-  pointer-events: none;
+  inset: 0;
+  -webkit-animation: spin 2.2s linear infinite;
+  animation: spin 2.2s linear infinite;
+}
+
+.orbit span {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e6d6b8;
+  box-shadow: 0 0 12px rgba(230,214,184,0.6);
+}
+
+/* Place 3 dots around a circle */
+.orbit span:nth-child(1) { top: 0; left: 50%; transform: translateX(-50%); }
+.orbit span:nth-child(2) { right: 0; top: 50%; transform: translateY(-50%); }
+.orbit span:nth-child(3) { bottom: 0; left: 50%; transform: translateX(-50%); }
+
+/* Center text */
+.orbit-text {
+  position: absolute;
+  inset: 0;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  color: #e6d6b8;
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  -webkit-animation: textPulse 2.2s ease-in-out infinite;
+  animation: textPulse 2.2s ease-in-out infinite;
+}
+
+.orbit-text span {
+  font-size: 12px;
+  letter-spacing: 0.5em;
+  opacity: 0.8;
 }
 
 /* Animations */
-@keyframes letterIn {
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-    text-shadow: 0 10px 40px rgba(230,214,184,0.35);
-  }
+@-webkit-keyframes spin {
+  to { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-@keyframes sweep {
-  0%   { left: -40%; }
-  60%  { left: 110%; }
-  100% { left: 110%; }
+@-webkit-keyframes textPulse {
+  0%   { opacity: 0.6; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+@keyframes textPulse {
+  0%   { opacity: 0.6; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.6; }
 }
 * {
   margin: 0;
