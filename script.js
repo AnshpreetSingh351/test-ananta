@@ -374,24 +374,44 @@ const toggleObserver = new IntersectionObserver((entries) => {
   threshold: 0.4
 });
 
-toggleElements.forEach(el => toggleObserver.observe(el));
+document.addEventListener("DOMContentLoaded", function () {
+  const loader = document.getElementById("site-loader");
+  const curtain = document.getElementById("curtain");
 
-  document.addEventListener("DOMContentLoaded", function () {
-    const loader = document.getElementById("site-loader");
-    const MIN_TIME = 3000; // minimum 3s
-    const start = Date.now();
+  const MIN_TIME = 3000; // minimum 3s
+  const start = Date.now();
 
-    window.addEventListener("load", function () {
-      const elapsed = Date.now() - start;
-      const wait = Math.max(0, MIN_TIME - elapsed);
+  window.addEventListener("load", function () {
+    const elapsed = Date.now() - start;
+    const wait = Math.max(0, MIN_TIME - elapsed);
 
-      setTimeout(function () {
-        loader.classList.add("hide");
-      }, wait + 300);
-    });
-
-    // Safety fallback
     setTimeout(function () {
-      loader.classList.add("hide");
-    }, 20000);
+      // 1. Start loader exit
+      loader.classList.add("exiting");
+
+      // 2. After loader exit → open curtain
+      setTimeout(() => {
+        loader.style.display = "none";
+
+        if (curtain) {
+          // Force reflow (important for iOS)
+          curtain.offsetHeight; 
+          curtain.classList.add("open");
+        }
+
+      }, 1200); // match loader exit animation
+    }, wait);
   });
+
+  // Safety fallback
+  setTimeout(function () {
+    loader.classList.add("exiting");
+    setTimeout(() => {
+      loader.style.display = "none";
+      if (curtain) {
+        curtain.offsetHeight;
+        curtain.classList.add("open");
+      }
+    }, 1200);
+  }, 20000);
+});
