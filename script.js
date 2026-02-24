@@ -374,6 +374,8 @@ const toggleObserver = new IntersectionObserver((entries) => {
   threshold: 0.4
 });
 
+toggleElements.forEach(el => toggleObserver.observe(el));
+
 document.addEventListener("DOMContentLoaded", function () {
   const loader = document.getElementById("site-loader");
   const curtain = document.getElementById("curtain");
