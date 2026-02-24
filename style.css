@@ -132,7 +132,23 @@
     opacity: 0;
   }
 }/* ===== WEBKIT / iOS SAFARI STABILITY FIXES FOR ALL VIDEO SECTIONS ===== */
-
+@media (max-width: 768px) {
+  .scroll-video,
+  .sticky-wrap {
+    height: 100svh;
+  }
+.sticky-wrap {
+  height: 100svh;   /* mobile-safe viewport height */
+  min-height: 100svh;
+  overflow: hidden;
+}
+  .scroll-video canvas,
+  .scroll-video video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
 /* Force GPU compositing for smoother rendering */
 .scroll-video,
 .sticky-wrap,
@@ -153,8 +169,10 @@
 /* Make sure canvas & video always fill screen correctly on iOS */
 .scroll-video canvas,
 .scroll-video video {
-  width: 100vw;
-  height: 100vh;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 
   -webkit-transform: translateZ(0);

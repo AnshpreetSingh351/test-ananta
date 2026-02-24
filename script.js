@@ -417,3 +417,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 1200);
   }, 20000);
 });
+function unlockVideos() {
+  document.querySelectorAll("video").forEach(v => {
+    v.muted = true;
+    v.playsInline = true;
+    v.setAttribute("webkit-playsinline", "true");
+    const p = v.play();
+    if (p) p.catch(() => {});
+  });
+
+  window.removeEventListener("touchstart", unlockVideos);
+  window.removeEventListener("click", unlockVideos);
+}
+
+window.addEventListener("touchstart", unlockVideos, { once: true });
+window.addEventListener("click", unlockVideos, { once: true });
