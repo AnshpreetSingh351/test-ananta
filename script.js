@@ -1,3 +1,26 @@
+
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+if (isSafari) {
+  // Fallback: show normal video instead of canvas
+  const video = this.section.querySelector("video.playback") || this.section.querySelector("video");
+  if (video) {
+    video.src = this.src;
+    video.style.display = "block";
+    video.style.position = "absolute";
+    video.style.inset = "0";
+    video.style.width = "100%";
+    video.style.height = "100%";
+    video.style.objectFit = "cover";
+    video.muted = true;
+    video.playsInline = true;
+    video.setAttribute("webkit-playsinline", "true");
+    video.play().catch(() => {});
+  }
+
+  // Hide canvas for Safari
+  if (this.canvas) this.canvas.style.display = "none";
+  return; // ⛔ skip frame extraction on Safari
+}
 class ScrollVideoSection {
   constructor(section) {
     this.section = section;
