@@ -1,27 +1,23 @@
-// ==================== SIMPLIFIED VIDEO SCROLL - WORKS ON ALL DEVICES ====================
-
-class ScrollVideoSection {
+// ==================== DESKTOP VERSION (Full Features) ====================
+class DesktopScrollVideo {
   constructor(section) {
-    // iOS detection
-    this.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    
     this.section = section;
     this.canvas = section.querySelector("canvas");
-    this.ctx = this.canvas ? this.canvas.getContext("2d") : null;
+    this.ctx = this.canvas.getContext("2d");
 
     this.src = section.dataset.video;
-    this.duration = Number(section.dataset.duration || 5);
-    
+    this.duration = Number(section.dataset.duration || 0);
+    this.fps = Number(section.dataset.fps || 30);
+    this.sampleEvery = Number(section.dataset.sample || 4);
+
     this.autoplaySeconds = Number(section.dataset.autoplay || 0);
     this.isIntro = this.autoplaySeconds > 0;
 
-    // For mobile - we'll use direct video playback
-    this.useDirectVideo = this.isIOS || /Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
+    this.totalFrames = Math.floor((this.duration * this.fps) / this.sampleEvery);
+
     this.frames = [];
     this.ready = false;
-    this.fallbackMode = this.useDirectVideo; // Start in fallback mode for mobile
+    this.fallbackMode = false;
 
     this.resize = this.resize.bind(this);
     this.onScroll = this.onScroll.bind(this);
@@ -30,26 +26,15 @@ class ScrollVideoSection {
   }
 
   async init() {
-    if (this.canvas) {
-      this.resize();
-      window.addEventListener("resize", this.resize);
-    }
+    this.resize();
+    window.addEventListener("resize", this.resize);
 
-    // For mobile, immediately use direct video
-    if (this.useDirectVideo) {
-      console.log("Mobile detected - using direct video playback");
-      this.enableDirectVideoMode();
-      return;
-    }
-
-    // Desktop: Try frame extraction
     if (this.isIntro) {
       this.videoPlayback = this.section.querySelector("video.playback");
       this.videoExtractor = this.section.querySelector("video.extractor");
 
       if (!this.videoPlayback || !this.videoExtractor) {
         console.error("Intro section needs 2 videos");
-        this.enableDirectVideoMode();
         return;
       }
 
@@ -59,26 +44,16 @@ class ScrollVideoSection {
       this.videoPlayback.src = this.src;
       this.videoExtractor.src = this.src;
 
-      try {
-        await Promise.all([
-          this.waitForVideo(this.videoPlayback),
-          this.waitForVideo(this.videoExtractor)
-        ]);
+      this.videoPlayback.load();
+      this.videoExtractor.load();
 
-        const extractSuccess = await this.extractFrames(this.videoExtractor);
-        
-        if (extractSuccess && this.frames.length > 0) {
-          this.ready = true;
-          await this.playIntroOnCanvas(this.videoPlayback, this.autoplaySeconds);
-          window.addEventListener("scroll", this.onScroll);
-        } else {
-          this.enableDirectVideoMode();
-        }
-        
-      } catch (e) {
-        console.error("Video initialization failed:", e);
-        this.enableDirectVideoMode();
-      }
+      this.videoExtractor.addEventListener("loadeddata", async () => {
+        await this.extractFrames(this.videoExtractor);
+        this.ready = true;
+        await this.playIntroOnCanvas(this.videoPlayback, this.autoplaySeconds);
+        this.onScroll();
+        window.addEventListener("scroll", this.onScroll);
+      });
 
     } else {
       this.video = this.section.querySelector("video");
@@ -90,148 +65,31 @@ class ScrollVideoSection {
 
       this.setupVideo(this.video);
       this.video.src = this.src;
+      this.video.load();
 
-      try {
-        await this.waitForVideo(this.video);
-        
-        const extractSuccess = await this.extractFrames(this.video);
-        
-        if (extractSuccess && this.frames.length > 0) {
-          this.ready = true;
-          this.drawFrame(0);
-          window.addEventListener("scroll", this.onScroll);
-        } else {
-          this.enableDirectVideoMode();
-        }
-        
-      } catch (e) {
-        console.error("Video initialization failed:", e);
-        this.enableDirectVideoMode();
-      }
-    }
-  }
-
-  enableDirectVideoMode() {
-    console.log("Enabling direct video mode");
-    this.fallbackMode = true;
-    this.ready = true;
-    
-    // Hide canvas
-    if (this.canvas) {
-      this.canvas.style.display = "none";
-    }
-    
-    // Get the appropriate video element
-    let video = this.isIntro ? this.section.querySelector("video.playback") : this.section.querySelector("video");
-    
-    if (!video) {
-      video = this.section.querySelector("video");
-    }
-    
-    if (video) {
-      // Setup video for direct playback
-      video.style.display = "block";
-      video.style.position = "absolute";
-      video.style.top = "0";
-      video.style.left = "0";
-      video.style.width = "100%";
-      video.style.height = "100%";
-      video.style.objectFit = "cover";
-      
-      // Ensure video is properly configured
-      video.muted = true;
-      video.playsInline = true;
-      video.preload = "auto";
-      video.setAttribute('playsinline', '');
-      video.setAttribute('webkit-playsinline', '');
-      
-      // Load the video source if not already set
-      if (!video.src && this.src) {
-        video.src = this.src;
-        video.load();
-      }
-      
-      // For non-intro sections, use intersection observer
-      if (!this.isIntro) {
-        this.setupIntersectionObserver(video);
-      } else {
-        // For intro, just play once
-        video.play().catch(e => console.log("Intro play failed:", e));
-      }
-      
-      // Also handle scroll for progress-based seeking (works on desktop)
-      if (!this.isIOS) {
-        window.addEventListener("scroll", () => this.onScrollFallback(video));
-      }
-    }
-  }
-
-  setupIntersectionObserver(video) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          // Play when visible
-          video.play().catch(e => console.log("Play failed:", e));
-        } else {
-          // Pause when hidden
-          video.pause();
-        }
+      this.video.addEventListener("loadeddata", async () => {
+        await this.extractFrames(this.video);
+        this.ready = true;
+        this.drawFrame(0);
+        window.addEventListener("scroll", this.onScroll);
       });
-    }, { threshold: 0.3 });
-    
-    observer.observe(video);
+    }
   }
 
   setupVideo(video) {
-    if (!video) return;
     video.crossOrigin = "anonymous";
     video.muted = true;
     video.playsInline = true;
     video.preload = "auto";
-    
-    if (this.isIOS) {
-      video.setAttribute('playsinline', '');
-      video.setAttribute('webkit-playsinline', '');
-    }
-  }
-
-  waitForVideo(video) {
-    return new Promise((resolve, reject) => {
-      if (!video) {
-        reject(new Error('No video element'));
-        return;
-      }
-      
-      if (video.readyState >= 2) {
-        resolve();
-      } else {
-        const timeout = setTimeout(() => {
-          reject(new Error('Video load timeout'));
-        }, 10000);
-
-        video.addEventListener('loadeddata', () => {
-          clearTimeout(timeout);
-          resolve();
-        }, { once: true });
-
-        video.addEventListener('error', () => {
-          clearTimeout(timeout);
-          reject(new Error('Video failed to load'));
-        }, { once: true });
-      }
-    });
   }
 
   resize() {
-    if (!this.canvas) return;
     const dpr = window.devicePixelRatio || 1;
     this.canvas.width = window.innerWidth * dpr;
     this.canvas.height = window.innerHeight * dpr;
     this.canvas.style.width = "100vw";
     this.canvas.style.height = "100vh";
-    if (this.ctx) {
-      this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
   async playIntroOnCanvas(video, seconds) {
@@ -265,128 +123,168 @@ class ScrollVideoSection {
   }
 
   async extractFrames(videoElement) {
-    if (!videoElement) return false;
-    
     this.frames.length = 0;
-    
-    // Limit frames for performance
-    const maxFrames = 40;
-    const frameStep = Math.max(1, Math.ceil(this.totalFrames / maxFrames));
-    
-    let successCount = 0;
-    
-    for (let i = 0; i < this.totalFrames; i += frameStep) {
+
+    for (let i = 0; i < this.totalFrames; i++) {
       const t = (i * this.sampleEvery) / this.fps;
-      
-      try {
-        await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error('Seek timeout')), 2000);
-          
-          const onSeek = () => {
-            clearTimeout(timeout);
-            videoElement.removeEventListener("seeked", onSeek);
-            resolve();
-          };
-          
-          videoElement.addEventListener("seeked", onSeek, { once: true });
-          videoElement.currentTime = t;
-        });
 
-        const bmp = await createImageBitmap(videoElement);
-        this.frames.push(bmp);
-        successCount++;
-        
-        if (i % 10 === 0) {
-          await new Promise(r => setTimeout(r, 10));
-        }
-        
-      } catch (e) {
-        console.warn(`Frame ${i} extraction failed:`, e);
-      }
-    }
-    
-    return successCount > 0;
-  }
+      await new Promise(resolve => {
+        const onSeek = () => {
+          videoElement.removeEventListener("seeked", onSeek);
+          resolve();
+        };
+        videoElement.addEventListener("seeked", onSeek);
+        videoElement.currentTime = t;
+      });
 
-  onScrollFallback(video) {
-    if (!video || this.isIOS) return;
-    
-    const scrollTop = window.scrollY;
-    const sectionTop = this.section.offsetTop;
-    const scrollLength = this.section.offsetHeight - window.innerHeight;
-    
-    if (scrollLength <= 0) return;
-    
-    const progress = Math.min(
-      Math.max((scrollTop - sectionTop) / scrollLength, 0),
-      1
-    );
-    
-    try {
-      video.currentTime = progress * this.duration;
-    } catch (e) {
-      // Ignore seeking errors
+      const bmp = await createImageBitmap(videoElement);
+      this.frames.push(bmp);
     }
   }
 
   onScroll() {
-    if (!this.ready || this.fallbackMode) return;
-
-    if (this.frames.length === 0) return;
+    if (!this.ready) return;
 
     const scrollTop = window.scrollY;
     const sectionTop = this.section.offsetTop;
     const scrollLength = this.section.offsetHeight - window.innerHeight;
 
-    if (scrollLength <= 0) return;
-
-    let progress = Math.min(
+    const progress = Math.min(
       Math.max((scrollTop - sectionTop) / scrollLength, 0),
       1
     );
 
+    let startFrame = 0;
     if (this.isIntro) {
-      const startFrame = Math.floor((this.autoplaySeconds * this.fps) / this.sampleEvery);
-      const adjustedStart = Math.min(Math.max(startFrame, 0), this.frames.length - 1);
-      
-      if (this.frames.length > adjustedStart) {
-        const remainingFrames = this.frames.length - 1 - adjustedStart;
-        const index = adjustedStart + Math.floor(progress * remainingFrames);
-        this.drawFrame(Math.min(index, this.frames.length - 1));
-      }
-    } else {
-      const index = Math.floor(progress * (this.frames.length - 1));
-      this.drawFrame(Math.min(index, this.frames.length - 1));
+      startFrame = Math.floor((this.autoplaySeconds * this.fps) / this.sampleEvery);
+      startFrame = Math.min(Math.max(startFrame, 0), this.frames.length - 1);
     }
+
+    const remainingFrames = (this.frames.length - 1) - startFrame;
+    const index = startFrame + Math.floor(progress * remainingFrames);
+
+    this.drawFrame(index);
   }
 
   drawFrame(index) {
     const frame = this.frames[index];
-    if (!frame || !this.ctx) return;
+    if (!frame) return;
 
-    try {
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.drawImage(frame, 0, 0, this.canvas.width, this.canvas.height);
-    } catch (e) {
-      console.warn('Draw error:', e);
-    }
+    this.ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    this.ctx.drawImage(frame, 0, 0, window.innerWidth, window.innerHeight);
   }
 }
 
-// ==================== INITIALIZE EVERYTHING ====================
-
-document.addEventListener("DOMContentLoaded", () => {
-  // Add iOS class to body
-  if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-    document.body.classList.add('ios-device');
+// ==================== MOBILE VERSION (Optimized for speed) ====================
+class MobileScrollVideo {
+  constructor(section) {
+    this.section = section;
+    this.video = section.querySelector("video");
+    this.canvas = section.querySelector("canvas");
+    
+    if (!this.video) {
+      console.log("No video found");
+      return;
+    }
+    
+    // Hide canvas completely on mobile
+    if (this.canvas) {
+      this.canvas.style.display = "none";
+    }
+    
+    // Get video source
+    this.src = section.dataset.video;
+    this.duration = Number(section.dataset.duration || 5);
+    this.isIntro = Number(section.dataset.autoplay || 0) > 0;
+    
+    // Setup video for mobile
+    this.setupMobileVideo();
+    
+    // Initialize
+    this.init();
   }
   
-  // Initialize video sections
+  setupMobileVideo() {
+    // Essential mobile settings
+    this.video.muted = true;
+    this.video.playsInline = true;
+    this.video.preload = "auto";
+    this.video.loop = !this.isIntro; // Loop only for non-intro sections
+    
+    // iOS specific attributes
+    this.video.setAttribute('playsinline', '');
+    this.video.setAttribute('webkit-playsinline', '');
+    
+    // Make video visible and properly positioned
+    this.video.style.display = "block";
+    this.video.style.position = "absolute";
+    this.video.style.top = "0";
+    this.video.style.left = "0";
+    this.video.style.width = "100%";
+    this.video.style.height = "100%";
+    this.video.style.objectFit = "cover";
+    
+    // Set video source
+    if (this.src && !this.video.src) {
+      this.video.src = this.src;
+      this.video.load();
+    }
+  }
+  
+  init() {
+    if (this.isIntro) {
+      // Intro section: play once
+      this.video.play().catch(e => console.log("Intro play failed:", e));
+    } else {
+      // Other sections: play/pause based on visibility
+      this.setupIntersectionObserver();
+    }
+  }
+  
+  setupIntersectionObserver() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // Video is visible - play it
+          this.video.play().catch(e => console.log("Play failed:", e));
+        } else {
+          // Video is hidden - pause it
+          this.video.pause();
+        }
+      });
+    }, { threshold: 0.3 });
+    
+    observer.observe(this.video);
+  }
+}
+
+// ==================== DEVICE DETECTION ====================
+function isMobile() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+// ==================== SHARED ANIMATIONS (Work on both devices) ====================
+
+// Initialize everything when DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+  const mobile = isMobile();
+  
+  console.log("Device detected:", mobile ? "MOBILE" : "DESKTOP");
+  
+  // Add device class to body
+  document.body.classList.add(mobile ? 'mobile-device' : 'desktop-device');
+  
+  // Initialize videos based on device
   document.querySelectorAll(".scroll-video").forEach(section => {
-    new ScrollVideoSection(section);
+    if (mobile) {
+      new MobileScrollVideo(section);
+    } else {
+      new DesktopScrollVideo(section);
+    }
   });
 
-  // Intersection Observer for reveal elements
+  // ========== TEXT REVEAL ANIMATIONS (Same for all devices) ==========
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -404,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
     observer.observe(el);
   });
 
-  // Stagger animation for amenities
+  // ========== STAGGER ANIMATION FOR AMENITIES ==========
   const staggerObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -423,7 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const amenitiesSection = document.querySelector(".amenities-section");
   if (amenitiesSection) staggerObserver.observe(amenitiesSection);
 
-  // Split text animation for intro
+  // ========== SPLIT TEXT ANIMATION FOR INTRO ==========
   const title = document.querySelector(".intro-title");
   if (title) {
     const text = title.innerText;
@@ -455,7 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
   `;
   document.head.appendChild(style);
 
-  // AOS initialization
+  // ========== AOS INITIALIZATION ==========
   if (typeof AOS !== 'undefined') {
     AOS.init({ 
       duration: 1000, 
@@ -463,10 +361,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 3D Parallax Hero Title (disable on mobile)
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
-  if (!isMobile) {
+  // ========== 3D PARALLAX HERO (DESKTOP ONLY) ==========
+  if (!mobile) {
     const hero = document.getElementById("hero3D");
     if (hero) {
       document.addEventListener("mousemove", (e) => {
@@ -481,15 +377,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Loader handling
+  // ========== LOADER HANDLING ==========
   const loader = document.getElementById("site-loader");
   const curtain = document.getElementById("curtain");
   
   if (loader) {
-    const MIN_TIME = 2000;
+    const MIN_TIME = mobile ? 1000 : 2000; // Shorter loader on mobile
     const start = Date.now();
 
-    // Hide loader when page is loaded
     if (document.readyState === 'complete') {
       const elapsed = Date.now() - start;
       const wait = Math.max(0, MIN_TIME - elapsed);
@@ -508,7 +403,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Safety fallback
     setTimeout(() => {
       if (loader.style.display !== "none") {
         hideLoader(loader, curtain);
@@ -528,7 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Handle visibility change to save memory
+// ========== VISIBILITY CHANGE HANDLER ==========
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     document.querySelectorAll("video").forEach(video => {
@@ -537,7 +431,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
-// Add mobile-specific CSS
+// ========== MOBILE-SPECIFIC CSS ==========
 const mobileCSS = `
 @media (max-width: 768px) {
   .scroll-video canvas {
@@ -572,18 +466,43 @@ const mobileCSS = `
     background: rgba(0, 0, 0, 0.3);
   }
   
-  /* Ensure text is readable on mobile */
   .text-panel {
     background: rgba(0, 0, 0, 0.6);
     padding: 20px;
     border-radius: 10px;
     backdrop-filter: blur(5px);
     margin: 0 20px;
+    width: auto !important;
   }
+  
+  .section-title {
+    font-size: 2rem !important;
+  }
+  
+  .meta-bar {
+    display: none !important;
+  }
+  
+  .side-label {
+    display: none !important;
+  }
+  
+  .spotlight, .corner-light {
+    display: none !important;
+  }
+}
+
+/* Desktop canvas visible */
+.desktop-device .scroll-video canvas {
+  display: block;
+}
+
+.desktop-device .scroll-video video {
+  display: none;
 }
 `;
 
-// Add the CSS to the page
+// Add CSS to page
 const styleElement = document.createElement('style');
 styleElement.textContent = mobileCSS;
 document.head.appendChild(styleElement);
