@@ -181,80 +181,58 @@ class MobileScrollVideo {
     this.section = section;
     this.video = section.querySelector("video");
     this.canvas = section.querySelector("canvas");
-    
-    if (!this.video) {
-      console.log("No video found");
-      return;
-    }
-    
-    // Hide canvas completely on mobile
-    if (this.canvas) {
-      this.canvas.style.display = "none";
-    }
-    
-    // Get video source
+
+    if (!this.video) return;
+
+    // Hide canvas on mobile
+    if (this.canvas) this.canvas.style.display = "none";
+
     this.src = section.dataset.video;
-    this.duration = Number(section.dataset.duration || 5);
-    this.isIntro = Number(section.dataset.autoplay || 0) > 0;
-    
-    // Setup video for mobile
-    this.setupMobileVideo();
-    
-    // Initialize
-    this.init();
-  }
-  
-  setupMobileVideo() {
-    // Essential mobile settings
+
+    // Setup video
     this.video.muted = true;
     this.video.playsInline = true;
     this.video.preload = "auto";
-    this.video.loop = !this.isIntro; // Loop only for non-intro sections
-    
-    // iOS specific attributes
-    this.video.setAttribute('playsinline', '');
-    this.video.setAttribute('webkit-playsinline', '');
-    
-    // Make video visible and properly positioned
+    this.video.setAttribute("playsinline", "");
+    this.video.setAttribute("webkit-playsinline", "");
+
+    // Style video
     this.video.style.display = "block";
     this.video.style.position = "absolute";
-    this.video.style.top = "0";
-    this.video.style.left = "0";
+    this.video.style.inset = "0";
     this.video.style.width = "100%";
     this.video.style.height = "100%";
     this.video.style.objectFit = "cover";
-    
-    // Set video source
+
+    // Set source
     if (this.src && !this.video.src) {
       this.video.src = this.src;
       this.video.load();
     }
+
+    this.onScroll = this.onScroll.bind(this);
+
+    this.video.addEventListener("loadedmetadata", () => {
+      this.video.pause(); // we control it via scroll
+      window.addEventListener("scroll", this.onScroll, { passive: true });
+      this.onScroll(); // initial sync
+    });
   }
-  
-  init() {
-    if (this.isIntro) {
-      // Intro section: play once
-      this.video.play().catch(e => console.log("Intro play failed:", e));
-    } else {
-      // Other sections: play/pause based on visibility
-      this.setupIntersectionObserver();
+
+  onScroll() {
+    const sectionTop = this.section.offsetTop;
+    const sectionHeight = this.section.offsetHeight;
+    const windowH = window.innerHeight;
+
+    const scrollLength = sectionHeight - windowH;
+    const scrolled = window.scrollY - sectionTop;
+
+    let progress = scrolled / scrollLength;
+    progress = Math.min(Math.max(progress, 0), 1);
+
+    if (this.video.duration) {
+      this.video.currentTime = progress * this.video.duration;
     }
-  }
-  
-  setupIntersectionObserver() {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          // Video is visible - play it
-          this.video.play().catch(e => console.log("Play failed:", e));
-        } else {
-          // Video is hidden - pause it
-          this.video.pause();
-        }
-      });
-    }, { threshold: 0.3 });
-    
-    observer.observe(this.video);
   }
 }
 
